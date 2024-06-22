@@ -1,32 +1,29 @@
 using VkLib.VkApi.Interfaces;
 using VkLib.VkApi.Methods.Messages;
+using VkLib.VkApi.Utils;
 
 namespace VkLib.VkApi.Commands;
 
-public class HelpCommand : ICommand
+public class HelpCommand : CommandBase
 {
-    private readonly VkApi _vkApi;
-    
     /// <summary>
-    /// The help command
+    /// Initializes a new instance of the <see cref="HelpCommand"/> class.
     /// </summary>
     /// <param name="vkApi">The vk api.</param>
-    public HelpCommand(VkApi vkApi)
+    public HelpCommand(VkApi vkApi) : base(vkApi)
     {
-        _vkApi = vkApi;
     }
 
-    public string CommandText => "/help";
+    public override string CommandText => "/help";
 
     /// <summary>
     /// Executes the specified user identifier.
     /// </summary>
     /// <param name="userId">The user identifier.</param>
     /// <param name="message">The message.</param>
-    public async void Execute(long? userId, string message)
+    public override async void Execute(long? userId, string message)
     {
-        var sendMessageMethod =
-            new SendMessageMethod(_vkApi, userId!.Value, "/start, /help");
+        var sendMessageMethod = new SendMessageMethod(VkApi, userId!.Value, "/start, /help");
         await sendMessageMethod.ExecuteAsync();
     }
 }

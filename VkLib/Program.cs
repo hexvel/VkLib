@@ -13,12 +13,13 @@ namespace VkLib
             var initializeLongPollServerMethod = new InitializeLongPollServerMethod(vk);
             await initializeLongPollServerMethod.ExecuteAsync();
 
-            // Регистрация команд
-            var commandHandler = new CommandHandler();
-            commandHandler.RegisterCommand(new StartCommand(vk));
-            commandHandler.RegisterCommand(new HelpCommand(vk));
+            // Создание фабрики команд
+            var commandFactory = new CommandFactory();
+            commandFactory.RegisterCommand("/start", () => new StartCommand(vk));
+            commandFactory.RegisterCommand("/help", () => new HelpCommand(vk));
 
-            // Передача commandHandler в VkApi для обработки команд
+            // Создание и передача CommandHandler
+            var commandHandler = new CommandHandler(commandFactory);
             vk.SetCommandHandler(commandHandler);
 
             // Запуск прослушивания событий

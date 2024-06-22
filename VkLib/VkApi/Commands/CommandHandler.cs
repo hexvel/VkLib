@@ -1,31 +1,17 @@
-using VkLib.VkApi.Interfaces;
-
 namespace VkLib.VkApi.Commands;
 
 public class CommandHandler
 {
-    private readonly Dictionary<string, ICommand> _commands;
+    private readonly CommandFactory _commandFactory;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandHandler"/> class.
     /// </summary>
-    public CommandHandler()
+    public CommandHandler(CommandFactory commandFactory)
     {
-        _commands = new Dictionary<string, ICommand>();
+        _commandFactory = commandFactory;
     }
     
-    /// <summary>
-    /// Registers a command.
-    /// </summary>
-    /// <param name="command">The command.</param>
-    public void RegisterCommand(ICommand command)
-    {
-        if (!_commands.TryAdd(command.CommandText, command))
-        {
-            Console.WriteLine($"Command {command.CommandText} is already registered.");
-        }
-    }
-
     /// <summary>
     /// Handles the command.
     /// </summary>
@@ -33,12 +19,27 @@ public class CommandHandler
     /// <param name="message">The message.</param>
     public void HandleCommand(long? userId, string message)
     {
-        foreach (var command in _commands.Values.Where(command => message.StartsWith(command.CommandText)))
+        var commandText = GetCommandText(message);
+        
+        if (_commandFactory.IsCommandRegistered(commandText))
         {
+            var command = _commandFactory.CreateCommand(commandText);
             command.Execute(userId, message);
-            return;
         }
-
-        Console.WriteLine($"No matching command found for message: {message}");
+        else
+        {
+            Console.WriteLine($"No matching command found for message: {message}");
+        }
+    }
+    
+    /// <summary>
+    /// Gets the command text.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    /// <returns></returns>
+    private static string GetCommandText(string message)
+    {
+        var commandText = message.Split(' ')[0];
+        return commandText;
     }
 }
