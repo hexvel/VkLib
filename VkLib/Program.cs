@@ -1,33 +1,21 @@
-﻿namespace VkLib
+﻿using VkLib.VkApi.Commands;
+using VkLib.VkApi.Methods.Messages;
+
+namespace VkLib
 {
     class Program
     {
         static async Task Main(string[] args)
         {
-            var vk = new VkApi();
-            await vk.InitializeLongPollServerAsync();
+            var vk = new VkApi.VkApi();
 
-            async void StartAction(long? userId, string message)
-            {
-                Console.WriteLine($"Received /start command from {userId}");
-                if (userId != null) await vk.SendMessageAsync(userId.Value, "Ну чо ты, мальчик, здарова");
-            }
+            var initializeLongPollServerMethod = new InitializeLongPollServerMethod(vk);
+            await initializeLongPollServerMethod.ExecuteAsync();
 
-            async void HelpAction(long? userId, string message)
-            {
-                Console.WriteLine($"Received /help command from {userId}");
-                if (userId != null)
-                    await vk.SendMessageAsync(userId.Value, "Вот те доступные команды: /start, /help");
-            }
-            
-            vk.RegisterCommand("/start", StartAction);
-            vk.RegisterCommand("/help", HelpAction);
+            vk.RegisterCommand(new StartCommand(vk));
+            vk.RegisterCommand(new HelpCommand(vk));
 
-            Console.WriteLine("Starting to listen for events...");
-            _ = vk.StartListeningAsync();
-
-            var groupInfo = await vk.GetGroupInfoAsync("223349108");
-            Console.WriteLine($"Group Name: {groupInfo["response"]?[0]?["name"]}");
+            await vk.StartListeningAsync();
 
             await Task.Delay(-1);
         }
