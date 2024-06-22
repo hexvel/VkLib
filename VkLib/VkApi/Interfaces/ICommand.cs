@@ -1,5 +1,8 @@
 namespace VkLib.VkApi.Interfaces;
 
+/// <summary>
+/// Interface ICommand
+/// </summary>
 public interface ICommand
 {
     string CommandText { get; }

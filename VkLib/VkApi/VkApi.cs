@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using VkLib.VkApi.Commands;
 using VkLib.VkApi.Interfaces;
 using VkLib.VkApi.Utils;
 
@@ -14,8 +15,13 @@ public class VkApi
     private string _key;
     private string? _pts;
     private string? _ts;
-    private readonly Dictionary<string, Action<long?, string>> _commands;
 
+    private readonly Dictionary<string, Action<long?, string>> _commands;
+    private CommandHandler _commandHandler;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="VkApi"/> class.
+    /// </summary>
     public VkApi()
     {
         _httpClient = new HttpClient();
@@ -27,18 +33,19 @@ public class VkApi
         GroupId = EnvLoader.Get("GROUP_ID");
     }
 
-    public void RegisterCommand(ICommand command)
+    /// <summary>
+    /// Sets the command handler.
+    /// </summary>
+    /// <param name="commandHandler">The command handler.</param>
+    public void SetCommandHandler(CommandHandler commandHandler)
     {
-        if (!_commands.ContainsKey(command.CommandText))
-        {
-            _commands.Add(command.CommandText, command.Execute);
-        }
-        else
-        {
-            Console.WriteLine($"Command {command.CommandText} is already registered.");
-        }
+        _commandHandler = commandHandler;
     }
-
+    
+    /// <summary>
+    /// Starts the listening.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
     public async Task StartListeningAsync()
     {
         if (string.IsNullOrEmpty(_server) || string.IsNullOrEmpty(_key) || string.IsNullOrEmpty(_ts))
@@ -63,30 +70,28 @@ public class VkApi
         }
     }
 
+    /// <summary>
+    /// Handles the update.
+    /// </summary>
+    /// <param name="update">The update object.</param>
     private void HandleUpdate(JToken update)
     {
         var type = update["type"]?.Value<string>();
 
-        if (type == "message_new")
-        {
-            var message = update["object"]?["message"];
-            var userId = message?["from_id"]?.Value<long>();
-            var text = message?["text"]?.Value<string>();
+        if (type != "message_new") return;
+        var message = update["object"]?["message"];
+        var userId = message?["from_id"]?.Value<long>();
+        var text = message?["text"]?.Value<string>();
 
-            Console.WriteLine($"New message from {userId}: {text}");
-            OnMessageNew(userId, text!);
-        }
+        _commandHandler?.HandleCommand(userId, text!);
     }
-
-    private void OnMessageNew(long? userId, string text)
-    {
-        foreach (var command in _commands.Where(command => text.StartsWith(command.Key)))
-        {
-            command.Value.Invoke(userId, text);
-            return;
-        }
-    }
-
+    
+    /// <summary>
+    /// Calls the method.
+    /// </summary>
+    /// <param name="method">The method.</param>
+    /// <param name="parameters">The parameters.</param>
+    /// <returns>The <see cref="JObject"/>.</returns>
     public async Task<JObject> CallMethodAsync(string method, Dictionary<string, string> parameters)
     {
         var queryString = $"{_apiBaseUrl}/{method}?";
@@ -105,6 +110,13 @@ public class VkApi
         return jsonResponse;
     }
 
+    /// <summary>
+    /// Sets the long poll server info.
+    /// </summary>
+    /// <param name="server">The server.</param>
+    /// <param name="key">The key.</param>
+    /// <param name="pts">The pts.</param>
+    /// <param name="ts">The ts.</param>
     public void SetLongPollServerInfo(string server, string key, string? pts, string? ts)
     {
         _server = server;

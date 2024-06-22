@@ -9,14 +9,22 @@ namespace VkLib
         {
             var vk = new VkApi.VkApi();
 
+            // Авторизация и инициализация Long Poll сервера
             var initializeLongPollServerMethod = new InitializeLongPollServerMethod(vk);
             await initializeLongPollServerMethod.ExecuteAsync();
 
-            vk.RegisterCommand(new StartCommand(vk));
-            vk.RegisterCommand(new HelpCommand(vk));
+            // Регистрация команд
+            var commandHandler = new CommandHandler();
+            commandHandler.RegisterCommand(new StartCommand(vk));
+            commandHandler.RegisterCommand(new HelpCommand(vk));
 
+            // Передача commandHandler в VkApi для обработки команд
+            vk.SetCommandHandler(commandHandler);
+
+            // Запуск прослушивания событий
             await vk.StartListeningAsync();
 
+            // Бесконечное ожидание, чтобы приложение не завершилось сразу
             await Task.Delay(-1);
         }
     }
