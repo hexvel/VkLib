@@ -13,11 +13,7 @@ public class CommandFactory
 
     public void RegisterCommand(string commandText, Func<ICommand> commandCreator)
     {
-        if (!_commands.ContainsKey(commandText))
-        {
-            _commands.Add(commandText, commandCreator);
-        }
-        else
+        if (!_commands.TryAdd(commandText, commandCreator))
         {
             Console.WriteLine($"Command {commandText} is already registered.");
         }

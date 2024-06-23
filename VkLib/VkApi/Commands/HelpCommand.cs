@@ -1,4 +1,3 @@
-using VkLib.VkApi.Interfaces;
 using VkLib.VkApi.Methods.Messages;
 using VkLib.VkApi.Utils;
 

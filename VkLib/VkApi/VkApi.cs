@@ -1,6 +1,6 @@
 using Newtonsoft.Json.Linq;
 using VkLib.VkApi.Commands;
-using VkLib.VkApi.Interfaces;
+using VkLib.VkApi.Models;
 using VkLib.VkApi.Utils;
 
 namespace VkLib.VkApi;
@@ -8,15 +8,13 @@ namespace VkLib.VkApi;
 public class VkApi
 {
     private readonly HttpClient _httpClient;
-    private readonly string _apiBaseUrl = "https://api.vk.com/method";
+    private const string ApiBaseUrl = "https://api.vk.com/method";
     public string AccessToken { get; private set; }
     public string GroupId { get; private set; }
     private string _server;
     private string _key;
-    private string? _pts;
     private string? _ts;
 
-    private readonly Dictionary<string, Action<long?, string>> _commands;
     private CommandHandler _commandHandler;
 
     /// <summary>
@@ -25,7 +23,6 @@ public class VkApi
     public VkApi()
     {
         _httpClient = new HttpClient();
-        _commands = new Dictionary<string, Action<long?, string>>();
 
         // Load configuration from .env file
         EnvLoader.Load();
@@ -55,15 +52,13 @@ public class VkApi
 
         while (true)
         {
-            var pollUrl = $"{_server}?act=a_check&key={_key}&pts={_pts}&ts={_ts}&wait=25";
+            var pollUrl = $"{_server}?act=a_check&key={_key}&ts={_ts}&wait=25";
             var response = await _httpClient.GetStringAsync(pollUrl);
-            var jsonResponse = JObject.Parse(response);
+            var jsonResponse = JsonSerializer.Deserialize<LongPollServerResponse>(response);
 
-            _pts = jsonResponse["pts"]?.Value<string>();
-            _ts = jsonResponse["ts"]?.Value<string>();
+            _ts = jsonResponse?.Ts;
 
-            if (jsonResponse["updates"] is not JArray updates) continue;
-            foreach (var update in updates)
+            foreach (var update in jsonResponse?.Updates!)
             {
                 HandleUpdate(update);
             }
@@ -74,15 +69,15 @@ public class VkApi
     /// Handles the update.
     /// </summary>
     /// <param name="update">The update object.</param>
-    private void HandleUpdate(JToken update)
+    private void HandleUpdate(Update update)
     {
-        var type = update["type"]?.Value<string>();
+        var type = update.Type;
 
         if (type != "message_new") return;
-        var message = update["object"]?["message"];
-        var userId = message?["from_id"]?.Value<long>();
-        var text = message?["text"]?.Value<string>();
-
+        var message = update.Object?.Message;
+        var userId = message?.FromId;
+        var text = message?.Text;
+            
         _commandHandler?.HandleCommand(userId, text!);
     }
     
@@ -94,10 +89,9 @@ public class VkApi
     /// <returns>The <see cref="JObject"/>.</returns>
     public async Task<JObject> CallMethodAsync(string method, Dictionary<string, string> parameters)
     {
-        var queryString = $"{_apiBaseUrl}/{method}?";
+        var queryString = $"{ApiBaseUrl}/{method}?";
 
-        queryString = parameters.Aggregate(queryString,
-            (current, param) => current + $"{param.Key}={Uri.EscapeDataString(param.Value)}&");
+        queryString = parameters.Aggregate(queryString, (current, param) => current + $"{param.Key}={Uri.EscapeDataString(param.Value)}&");
 
         var response = await _httpClient.GetStringAsync(queryString);
         var jsonResponse = JObject.Parse(response);
@@ -115,13 +109,11 @@ public class VkApi
     /// </summary>
     /// <param name="server">The server.</param>
     /// <param name="key">The key.</param>
-    /// <param name="pts">The pts.</param>
     /// <param name="ts">The ts.</param>
-    public void SetLongPollServerInfo(string server, string key, string? pts, string? ts)
+    public void SetLongPollServerInfo(string server, string key, string ts)
     {
         _server = server;
         _key = key;
-        _pts = pts;
         _ts = ts;
     }
 }

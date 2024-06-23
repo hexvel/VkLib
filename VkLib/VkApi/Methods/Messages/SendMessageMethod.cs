@@ -20,7 +20,7 @@ public class SendMessageMethod : IApiMethod
         _userId = userId;
         _message = message;
     }
-    
+
     /// <summary>
     /// Executes the specified user identifier.
     /// </summary>
@@ -31,7 +31,7 @@ public class SendMessageMethod : IApiMethod
         {
             { "user_id", _userId.ToString() },
             { "message", _message },
-            { "random_id", new System.Random().Next().ToString() },
+            { "random_id", new Random().Next().ToString() },
             { "access_token", _vkApi.AccessToken },
             { "v", "5.131" }
         };

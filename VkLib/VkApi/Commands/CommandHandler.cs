@@ -11,7 +11,7 @@ public class CommandHandler
     {
         _commandFactory = commandFactory;
     }
-    
+
     /// <summary>
     /// Handles the command.
     /// </summary>
@@ -20,7 +20,7 @@ public class CommandHandler
     public void HandleCommand(long? userId, string message)
     {
         var commandText = GetCommandText(message);
-        
+
         if (_commandFactory.IsCommandRegistered(commandText))
         {
             var command = _commandFactory.CreateCommand(commandText);

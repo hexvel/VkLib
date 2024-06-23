@@ -24,22 +24,21 @@ public class InitializeLongPollServerMethod : IApiMethod
     {
         var parameters = new Dictionary<string, string>
         {
-            { "group_id", _vkApi.GroupId ?? "" },
-            { "access_token", _vkApi.AccessToken ?? "" },
+            { "group_id", _vkApi.GroupId },
+            { "access_token", _vkApi.AccessToken },
             { "v", "5.131" }
         };
 
         var response = await _vkApi.CallMethodAsync("groups.getLongPollServer", parameters);
-        var server = response["response"]?["server"]?.Value<string>();
-        var key = response["response"]?["key"]?.Value<string>();
-        var pts = response["response"]?["key"]?.Value<string>();
-        var ts = response["response"]?["ts"]?.Value<string>();
-
+        var server = response["response"]?["server"]?.ToString();
+        var key = response["response"]?["key"]?.ToString();
+        var ts = response["response"]?["ts"]?.ToString();
+        
         if (server == null || key == null || ts == null)
         {
-            throw new System.Exception("Failed to get Long Poll server info.");
+            throw new Exception("Failed to initialize long poll server");
         }
-
-        _vkApi.SetLongPollServerInfo(server, key, pts, ts);
+        
+        _vkApi.SetLongPollServerInfo(server, key, ts);
     }
 }
