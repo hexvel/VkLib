@@ -1,5 +1,7 @@
+using DotNetEnv;
 using Newtonsoft.Json.Linq;
 using VkLib.VkApi.Commands;
+using VkLib.VkApi.Enums;
 using VkLib.VkApi.Models;
 using VkLib.VkApi.Utils;
 
@@ -25,9 +27,9 @@ public class VkApi
         _httpClient = new HttpClient();
 
         // Load configuration from .env file
-        EnvLoader.Load();
-        AccessToken = EnvLoader.Get("ACCESS_TOKEN");
-        GroupId = EnvLoader.Get("GROUP_ID");
+        Env.Load();
+        AccessToken = Env.GetString("ACCESS_TOKEN");
+        GroupId = Env.GetString("GROUP_ID");
     }
 
     /// <summary>
@@ -38,7 +40,7 @@ public class VkApi
     {
         _commandHandler = commandHandler;
     }
-    
+
     /// <summary>
     /// Starts the listening.
     /// </summary>
@@ -73,14 +75,16 @@ public class VkApi
     {
         var type = update.Type;
 
-        if (type != "message_new") return;
-        var message = update.Object?.Message;
-        var userId = message?.FromId;
-        var text = message?.Text;
-            
-        _commandHandler?.HandleCommand(userId, text!);
+        if (type == EventType.MessageNew)
+        {
+            var message = update.Object?.Message;
+            var userId = message?.FromId;
+            var text = message?.Text;
+  
+            _commandHandler?.HandleCommand(userId, text!);
+        }
     }
-    
+
     /// <summary>
     /// Calls the method.
     /// </summary>
@@ -91,7 +95,8 @@ public class VkApi
     {
         var queryString = $"{ApiBaseUrl}/{method}?";
 
-        queryString = parameters.Aggregate(queryString, (current, param) => current + $"{param.Key}={Uri.EscapeDataString(param.Value)}&");
+        queryString = parameters.Aggregate(queryString,
+            (current, param) => current + $"{param.Key}={Uri.EscapeDataString(param.Value)}&");
 
         var response = await _httpClient.GetStringAsync(queryString);
         var jsonResponse = JObject.Parse(response);

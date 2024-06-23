@@ -1,4 +1,4 @@
-namespace VkBot.VkApi.Interfaces;
+namespace VkLib.VkApi.Interfaces;
 
 /// <summary>
 /// Interface IApiMethod

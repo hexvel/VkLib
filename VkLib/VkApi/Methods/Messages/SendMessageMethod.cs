@@ -1,4 +1,4 @@
-using VkBot.VkApi.Interfaces;
+using VkLib.VkApi.Interfaces;
 
 namespace VkLib.VkApi.Methods.Messages;
 

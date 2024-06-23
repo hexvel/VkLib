@@ -1,14 +1,11 @@
-﻿using VkLib.VkApi.Commands;
-using VkLib.VkApi.Methods.Messages;
-using VkLib.VkApi.Utils;
+﻿using VkLib.VkApi.Utils;
 
-namespace VkLib
+namespace VkLib;
+
+class Program
 {
-    class Program
+    private static async Task Main(string[] args)
     {
-        private static async Task Main(string[] args)
-        {
-            await BotRunner.RunAsync();
-        }
+        await BotRunner.RunAsync();
     }
 }

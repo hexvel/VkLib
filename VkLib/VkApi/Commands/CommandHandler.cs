@@ -3,7 +3,7 @@ namespace VkLib.VkApi.Commands;
 public class CommandHandler
 {
     private readonly CommandFactory _commandFactory;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandHandler"/> class.
     /// </summary>
@@ -31,7 +31,7 @@ public class CommandHandler
             Console.WriteLine($"No matching command found for message: {message}");
         }
     }
-    
+
     /// <summary>
     /// Gets the command text.
     /// </summary>
