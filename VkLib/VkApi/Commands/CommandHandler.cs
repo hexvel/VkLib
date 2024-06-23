@@ -2,44 +2,22 @@ namespace VkLib.VkApi.Commands;
 
 public class CommandHandler
 {
-    private readonly CommandFactory _commandFactory;
+    private readonly CommandRegistry _commandRegistry;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CommandHandler"/> class.
-    /// </summary>
-    public CommandHandler(CommandFactory commandFactory)
+    public CommandHandler(CommandRegistry commandRegistry)
     {
-        _commandFactory = commandFactory;
+        _commandRegistry = commandRegistry;
     }
 
-    /// <summary>
-    /// Handles the command.
-    /// </summary>
-    /// <param name="userId">The user identifier.</param>
-    /// <param name="message">The message.</param>
-    public void HandleCommand(long? userId, string message)
+    public void HandleCommand(long? userId, string text)
     {
-        var commandText = GetCommandText(message);
+        if (userId == null || string.IsNullOrEmpty(text))
+            return;
 
-        if (_commandFactory.IsCommandRegistered(commandText))
-        {
-            var command = _commandFactory.CreateCommand(commandText);
-            command.Execute(userId, message);
-        }
-        else
-        {
-            Console.WriteLine($"No matching command found for message: {message}");
-        }
-    }
-
-    /// <summary>
-    /// Gets the command text.
-    /// </summary>
-    /// <param name="message">The message.</param>
-    /// <returns></returns>
-    private static string GetCommandText(string message)
-    {
-        var commandText = message.Split(' ')[0];
-        return commandText;
+        var parts = text.Split(' ', 2);
+        var command = parts[0].ToLower();
+        var args = parts.Length > 1 ? parts[1] : string.Empty;
+        
+        _commandRegistry.ExecuteCommand(command, userId.Value, args);
     }
 }

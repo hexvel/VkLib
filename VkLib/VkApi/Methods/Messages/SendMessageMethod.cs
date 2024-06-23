@@ -6,7 +6,7 @@ public class SendMessageMethod : IApiMethod
 {
     private readonly VkApi _vkApi;
     private readonly long _userId;
-    private readonly string _message;
+    private readonly string? _message;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SendMessageMethod"/> class.
@@ -14,7 +14,7 @@ public class SendMessageMethod : IApiMethod
     /// <param name="vkApi">The vk api.</param>
     /// <param name="userId">User identifier.</param>
     /// <param name="message">The message.</param>
-    public SendMessageMethod(VkApi vkApi, long userId, string message)
+    public SendMessageMethod(VkApi vkApi, long userId, string? message)
     {
         _vkApi = vkApi;
         _userId = userId;
@@ -27,7 +27,7 @@ public class SendMessageMethod : IApiMethod
     /// <exception cref="Exception"></exception>
     public async Task ExecuteAsync()
     {
-        var parameters = new Dictionary<string, string>
+        var parameters = new Dictionary<string, string?>
         {
             { "user_id", _userId.ToString() },
             { "message", _message },

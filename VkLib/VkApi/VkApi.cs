@@ -11,7 +11,7 @@ public class VkApi
 {
     private readonly HttpClient _httpClient;
     private const string ApiBaseUrl = "https://api.vk.com/method";
-    public string AccessToken { get; private set; }
+    public string? AccessToken { get; private set; }
     public string GroupId { get; private set; }
     private string _server;
     private string _key;
@@ -60,7 +60,7 @@ public class VkApi
 
             _ts = jsonResponse?.Ts;
 
-            foreach (var update in jsonResponse?.Updates!)
+            foreach (var update in jsonResponse!.Updates)
             {
                 HandleUpdate(update);
             }
@@ -80,7 +80,7 @@ public class VkApi
             var message = update.Object?.Message;
             var userId = message?.FromId;
             var text = message?.Text;
-  
+            
             _commandHandler?.HandleCommand(userId, text!);
         }
     }
@@ -91,12 +91,10 @@ public class VkApi
     /// <param name="method">The method.</param>
     /// <param name="parameters">The parameters.</param>
     /// <returns>The <see cref="JObject"/>.</returns>
-    public async Task<JObject> CallMethodAsync(string method, Dictionary<string, string> parameters)
+    public async Task<JObject> CallMethodAsync(string method, Dictionary<string, string?> parameters)
     {
         var queryString = $"{ApiBaseUrl}/{method}?";
-
-        queryString = parameters.Aggregate(queryString,
-            (current, param) => current + $"{param.Key}={Uri.EscapeDataString(param.Value)}&");
+        queryString = parameters.Aggregate(queryString, (current, param) => current + $"{param.Key}={Uri.EscapeDataString(param.Value!)}&");
 
         var response = await _httpClient.GetStringAsync(queryString);
         var jsonResponse = JObject.Parse(response);

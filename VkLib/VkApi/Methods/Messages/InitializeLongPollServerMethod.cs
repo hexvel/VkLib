@@ -1,4 +1,3 @@
-using Newtonsoft.Json.Linq;
 using VkLib.VkApi.Interfaces;
 
 namespace VkLib.VkApi.Methods.Messages;
@@ -22,7 +21,7 @@ public class InitializeLongPollServerMethod : IApiMethod
     /// <exception cref="Exception"></exception>
     public async Task ExecuteAsync()
     {
-        var parameters = new Dictionary<string, string>
+        var parameters = new Dictionary<string, string?>
         {
             { "group_id", _vkApi.GroupId },
             { "access_token", _vkApi.AccessToken },
