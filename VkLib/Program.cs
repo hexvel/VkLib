@@ -1,5 +1,4 @@
-﻿using VkLib.VkApi.Commands;
-using VkLib.VkApi.Methods.Messages;
+﻿using DotNetEnv;
 
 namespace VkLib;
 
@@ -7,17 +6,12 @@ class Program
 {
     private static async Task Main(string[] args)
     {
-        var vkApi = new VkApi.VkApi();
-        
-        var initializeLongPollServerMethod = new InitializeLongPollServerMethod(vkApi);
-        await initializeLongPollServerMethod.ExecuteAsync();
-        
-        var commandRegistry = new CommandRegistry();
-        var botCommands = new BotCommands(vkApi);
+        Env.Load();
+        var accessToken = Env.GetString("ACCESS_TOKEN");
 
-        commandRegistry.RegisterCommands(botCommands);
-        vkApi.SetCommandHandler(new CommandHandler(commandRegistry));
+        var apiClient = new VkApiClient(accessToken);
+        var bot = new VkBot(apiClient);
 
-        await vkApi.StartListeningAsync();
+        await bot.StartBot();
     }
 }
