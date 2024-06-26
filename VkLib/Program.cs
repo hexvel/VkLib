@@ -1,17 +1,40 @@
 ﻿using DotNetEnv;
+using Microsoft.Extensions.DependencyInjection;
+using VkLib.Interfaces;
+using VkLib.Services;
 
 namespace VkLib;
 
 class Program
 {
-    private static async Task Main(string[] args)
+    static async Task Main(string[] args)
     {
         Env.Load();
-        var accessToken = Env.GetString("ACCESS_TOKEN");
+        var serviceCollection = new ServiceCollection();
+        ConfigureServices(serviceCollection);
 
-        var apiClient = new VkApiClient(accessToken);
-        var bot = new VkBot(apiClient);
+        var serviceProvider = serviceCollection.BuildServiceProvider();
 
-        await bot.StartBot();
+        var bot = serviceProvider.GetRequiredService<VkBot>();
+
+        await bot.StartAsync();
+    }
+
+    private static void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton<VkApiClient, VkApiClient>();
+
+        // Регистрация HttpClient
+        services.AddSingleton(new HttpClient());
+
+        // Регистрация VkApiClient с передачей accessToken
+        var accessToken = Env.GetString("ACCESS_TOKEN"); // Замените на ваш токен доступа
+        services.AddSingleton(provider => new VkApiClient(accessToken, provider.GetRequiredService<HttpClient>()));
+
+        // Регистрация IMessageSenderService
+        services.AddSingleton<IMessageActionService, VkMessageActionService>();
+
+        // Регистрация VkBot
+        services.AddSingleton<VkBot>();
     }
 }

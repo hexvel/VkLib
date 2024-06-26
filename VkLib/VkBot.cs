@@ -5,34 +5,35 @@ using VkLib;
 using VkLib.Enums;
 using VkLib.Models;
 using VkLib.Handlers;
+using VkLib.Handlers.Commands;
+using VkLib.Interfaces;
 
 
 public class VkBot
 {
     private readonly VkApiClient _apiClient;
     private readonly CommandDispatcher _commandDispatcher;
+    private readonly IMessageActionService _messageAction;
 
-    public VkBot(VkApiClient apiClient)
+    public VkBot(VkApiClient apiClient, IMessageActionService messageAction)
     {
         _apiClient = apiClient;
         _commandDispatcher = new CommandDispatcher();
+        _messageAction = messageAction;
 
         RegisterCommands();
     }
 
     private void RegisterCommands()
     {
-        _commandDispatcher.RegisterCommand("/test", async message =>
-        {
-            await _apiClient.Messages.SendMessage(new SendMessageRequest
-            {
-                UserId = message.PeerId,
-                Message = "Прив :)"
-            });
-        });
+        var startCommand = new StartCommand(_messageAction);
+        var helpCommand = new HelpCommand(_messageAction);
+
+        _commandDispatcher.RegisterCommand(startCommand);
+        _commandDispatcher.RegisterCommand(helpCommand);
     }
 
-    public async Task StartBot()
+    public async Task StartAsync()
     {
         Console.WriteLine("Bot started.");
         await ListenEvents();
@@ -109,11 +110,12 @@ public class VkBot
         return ProcessLongPollResponse(response);
     }
 
-    private async Task HandleMessageEvent(MessageNewEvent messageNewEvent)
+    private async Task HandleMessageEvent(MessageNewEvent messageEvent)
     {
-        var message = messageNewEvent.Message;
-        if (IsCommand(message.Text, out var commandName))
-            await _commandDispatcher.TryExecuteCommand(commandName, message);
+        var messageText = messageEvent.Message.Text;
+        var commandName = messageText.Split(' ')[0];
+
+        await _commandDispatcher.TryExecuteCommand(commandName, messageEvent.Message);
     }
 
     private static bool IsCommand(string text, out string? commandName)

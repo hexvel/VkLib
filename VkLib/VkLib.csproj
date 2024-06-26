@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <PackageReference Include="DotNetEnv" Version="3.0.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0-preview.5.24306.7" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
 

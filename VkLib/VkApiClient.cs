@@ -1,19 +1,18 @@
-using Newtonsoft.Json;
 using VkLib.Api.Methods;
-using VkLib.Models;
 
 namespace VkLib;
 
 public class VkApiClient
 {
+    private string _accessToken;
     private readonly HttpClient _httpClient;
-    private readonly string _accessToken;
+    
     private const string ApiVersion = "5.131";
 
-    public VkApiClient(string accessToken)
+    public VkApiClient(string accessToken, HttpClient httpClient)
     {
         _accessToken = accessToken;
-        _httpClient = new HttpClient();
+        _httpClient = httpClient;
         Messages = new Messages(this);
     }
 

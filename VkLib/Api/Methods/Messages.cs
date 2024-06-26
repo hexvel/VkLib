@@ -16,12 +16,14 @@ public class Messages
     {
         var parameters = new Dictionary<string, string>
         {
-            { "user_id", request.UserId.ToString() },
+            { "peer_id", request.PeerId.ToString() },
             { "random_id", new Random().Next().ToString() },
             { "message", request.Message }
         };
 
-        return await _apiClient.CallMethodAsync("messages.send", parameters);
+        var a = await _apiClient.CallMethodAsync("messages.send", parameters);
+        Console.WriteLine(a);
+        return a;
     }
 
     public async Task<string> EditMessage(EditMessageRequest request)
